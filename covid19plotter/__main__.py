@@ -1,3 +1,12 @@
+"""
+Covid19Plotter
+==============
+
+Module for plotting trends about the novel coronavirus in various locations.
+The data comes from John Hopkins University:
+https://github.com/CSSEGISandData/COVID-19
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -24,12 +33,21 @@ COUNTY = "Admin2"
 
 
 class Covid19Plotter:
+    """
+    Covid19Plotter class. See module documentation for more information.
+    """
+
     def __init__(self):
         print("Loading...")
         self.confirmed_df = pd.read_csv(BASE_URL % "confirmed")
         self.deaths_df = pd.read_csv(BASE_URL % "deaths")
 
     def plot(self):
+        """
+        Main public method for plotting the data. The data has already been
+        loaded from John Hopkins University.
+        """
+
         while True:
             mode = self._get_mode()
 
@@ -61,6 +79,13 @@ class Covid19Plotter:
                 self._plot_new(df, location, "New Deaths")
     
     def _get_mode(self):
+        """
+        Gets the desired plotting mode from the user.
+
+        Returns:
+            int
+        """
+
         print("What type of data do you want to view?")
         print("1 - Total confirmed")
         print("2 - New confirmed")
@@ -77,6 +102,17 @@ class Covid19Plotter:
         return int(mode)
     
     def _get_state(self, country_df):
+        """
+        Gets the desired state from the user.
+
+        Args:
+            country_df (:class:`~pd.DataFrame`): `~pd.DataFrame` for the entire
+                country.
+
+        Returns:
+            str
+        """
+
         print("Which state do you want to view? (Just press ENTER to see whole country)")
 
         state = self._input()
@@ -92,6 +128,17 @@ class Covid19Plotter:
         return state
 
     def _get_county(self, state_df):
+        """
+        Gets the desired county from the user.
+
+        Args:
+            state_df (:class:`~pd.DataFrame`): `~pd.DataFrame` for a single
+                state.
+
+        Returns:
+            str
+        """
+
         print("Which county do you want to view? (Just press ENTER to see whole state)")
 
         county = self._input()
@@ -104,18 +151,47 @@ class Covid19Plotter:
         return county
     
     def _input(self):
+        """
+        Gets input from a user, using a consistent prompt.
+
+        Returns:
+            str
+        """
+
         i = input(">>> ")
         if i == "exit" or i == "quit":
             exit()
         return i
 
     def _plot_total(self, df, location, data_desc):
+        """
+        Plots the total number of a particular statistic to date (i.e.
+        confirmed cases, deaths).
+
+        Args:
+            df (:class:`~pd.DataFrame`): `~pd.DataFrame` to plot.
+            location (str): Location that the data represents, regardless of
+                scope (i.e. "US" or "Michigan").
+            data_desc (str): Description of the data (i.e. "Total Confirmed").
+        """
+
         last_updated = df.columns[-1]
         df = df.sum()[STARTING_DAY:]
 
         self._plot(df.values.tolist(), location, last_updated, data_desc)
     
     def _plot_new(self, df, location, data_desc):
+        """
+        Plots the daily number of a particular statistic. (i.e. confirmed
+        cases, deaths).
+
+        Args:
+            df (:class:`~pd.DataFrame`): `~pd.DataFrame` to plot.
+            location (str): Location that the data represents, regardless of
+                scope (i.e. "US" or "Michigan").
+            data_desc (str): Description of the data (i.e. "Total Confirmed").
+        """
+
         last_updated = df.columns[-1]
         df = df.sum()[STARTING_DAY:]
         lst = get_array_diffs(df.values.tolist())
@@ -123,6 +199,17 @@ class Covid19Plotter:
         self._plot(lst, location, last_updated, data_desc)
     
     def _plot(self, data, location, last_updated, data_desc):
+        """
+        Plots the given data.
+
+        Args:
+            data (list): Data to plot.
+            location (str): Location that the data represents, regardless of
+                scope (i.e. "US" or "Michigan").
+            last_updated (str): Date that the data was last updated.
+            data_desc (str): Description of the data (i.e. "Total Confirmed").
+        """
+
         title = "%s %s (Last Updated %s)" % (location, data_desc, last_updated)
 
         plt.figure(num=title)
@@ -135,6 +222,16 @@ class Covid19Plotter:
         plt.show()
 
     def _get_state_confirmed_data(self, state):
+        """
+        Gets the confirmed cases data for the given state.
+
+        Args:
+            state (str): State to use to get the confirmed cases data.
+
+        Returns:
+            :class:`~pd.DataFrame`
+        """
+
         df = self.confirmed_df
         return df[df[STATE] == state].sum()[STARTING_DAY:]
 
