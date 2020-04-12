@@ -147,5 +147,6 @@ class Covid19Plotter:
         return df[df[STATE] == state].sum()[STARTING_DAY:]
 
 
-plotter = Covid19Plotter()
-plotter.plot()
+if __name__ == "__main__":
+    plotter = Covid19Plotter()
+    plotter.plot()
