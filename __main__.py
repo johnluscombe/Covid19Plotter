@@ -43,29 +43,33 @@ class Covid19Plotter:
     def plot(self):
         while True:
             mode = self._get_mode()
-            state = self._get_state(mode)
 
-            if state != "":
-                confirmed_df = self.confirmed_df[self.confirmed_df[STATE] == state]
-                deaths_df = self.deaths_df[self.deaths_df[STATE] == state]
-
-                if mode == TOTAL_CONFIRMED_MODE:
-                    self._plot_total(confirmed_df, state, "Total Confirmed")
-                elif mode == NEW_CONFIRMED_MODE:
-                    self._plot_new(confirmed_df, state, "New Confirmed")
-                elif mode == TOTAL_DEATHS_MODE:
-                    self._plot_total(deaths_df, state, "Total Deaths")
-                elif mode == NEW_DEATHS_MODE:
-                    self._plot_new(deaths_df, state, "New Deaths")
+            if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
+                df = self.deaths_df
             else:
-                if mode == TOTAL_CONFIRMED_MODE:
-                    self._plot_total(self.confirmed_df, "US", "Total Confirmed")
-                elif mode == NEW_CONFIRMED_MODE:
-                    self._plot_new(self.confirmed_df, "US", "New Confirmed")
-                elif mode == TOTAL_DEATHS_MODE:
-                    self._plot_total(self.deaths_df, "US", "Total Deaths")
-                elif mode == NEW_DEATHS_MODE:
-                    self._plot_new(self.deaths_df, "US", "New Deaths")
+                df = self.confirmed_df
+
+            location = "US"
+
+            state = self._get_state(df)
+            if state != "":
+                location = state
+                df = df[df[STATE] == state]
+
+                if len(df) > 1:
+                    county = self._get_county(df)
+                    if county != "":
+                        location = county + " County, " + state
+                        df = df[df[COUNTY] == county]
+
+            if mode == TOTAL_CONFIRMED_MODE:
+                self._plot_total(df, location, "Total Confirmed")
+            elif mode == NEW_CONFIRMED_MODE:
+                self._plot_new(df, location, "New Confirmed")
+            elif mode == TOTAL_DEATHS_MODE:
+                self._plot_total(df, location, "Total Deaths")
+            elif mode == NEW_DEATHS_MODE:
+                self._plot_new(df, location, "New Deaths")
     
     def _get_mode(self):
         print("What type of data do you want to view?")
@@ -83,22 +87,29 @@ class Covid19Plotter:
         
         return int(mode)
     
-    def _get_state(self, mode):
-        print("What state do you want to view? (Just press ENTER to see whole country)")
-
-        if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
-            df = self.deaths_df
-        else:
-            df = self.confirmed_df
+    def _get_state(self, country_df):
+        print("Which state do you want to view? (Just press ENTER to see whole country)")
 
         state = self._input()
-        states = array_to_lower_case(df[STATE].tolist())
+        states = array_to_lower_case(country_df[STATE].tolist())
 
         while state != "" and state.lower() not in states:
             print("Invalid state.")
             state = self._input()
 
         return state
+
+    def _get_county(self, state_df):
+        print("Which county do you want to view? (Just press ENTER to see whole state)")
+
+        county = self._input()
+        counties = array_to_lower_case(state_df[COUNTY].tolist())
+
+        while county != "" and county.lower() not in counties:
+            print("Invalid county.")
+            county = self._input()
+
+        return county
     
     def _input(self):
         i = input(">>> ")
