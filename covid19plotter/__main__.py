@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from covid19plotter.aliases import STATE_ABBREVIATIONS
+from covid19plotter.utils import array_to_lower_case
+from covid19plotter.utils import get_array_diffs
+
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
            "/csse_covid_19_time_series/time_series_covid19_%s_US.csv "
 
@@ -17,21 +21,6 @@ NEW_CASES = "New Cases"
 
 STATE = "Province_State"
 COUNTY = "Admin2"
-
-
-def array_to_lower_case(arr):
-    for i in range(len(arr)):
-        arr[i] = arr[i].lower()
-    return arr
-
-
-def get_array_diffs(arr):
-    if len(arr) > 0:
-        diffs = arr[:1]
-        for i in range(1, len(arr)):
-            diffs.append(arr[i] - arr[i - 1])
-        return diffs
-    return []
 
 
 class Covid19Plotter:
@@ -93,6 +82,9 @@ class Covid19Plotter:
         state = self._input()
         states = array_to_lower_case(country_df[STATE].tolist())
 
+        if state in STATE_ABBREVIATIONS:
+            state = STATE_ABBREVIATIONS[state]
+
         while state != "" and state.lower() not in states:
             print("Invalid state.")
             state = self._input()
@@ -116,7 +108,7 @@ class Covid19Plotter:
         if i == "exit" or i == "quit":
             exit()
         return i
-    
+
     def _plot_total(self, df, location, data_desc):
         last_updated = df.columns[-1]
         df = df.sum()[STARTING_DAY:]
