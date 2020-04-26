@@ -8,7 +8,7 @@ class TotalPlot(PlotBase):
         return DATA_DESCRIPTION
 
     def _get_subtitle(self):
-        subtitle = "Total Confirmed Cases " + str(self._data[-1])
+        subtitle = "Total Confirmed Cases " + str(self._series[-1])
         return subtitle + " | " + super()._get_subtitle()
 
     def _get_ylabel(self):
