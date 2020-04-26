@@ -1,3 +1,10 @@
+"""
+Daily Plot
+==========
+
+Plot for displaying daily increases in values.
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -12,6 +19,10 @@ MOVING_AVG_STYLE = "--"
 
 
 class DailyPlot(PlotBase):
+    """
+    DailyPlot class. See module documentation for more information.
+    """
+
     def _plot(self):
         super()._plot()
 

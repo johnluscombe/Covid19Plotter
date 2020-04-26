@@ -1,9 +1,20 @@
+"""
+Total Plot
+==========
+
+Plot for displaying the running total of values.
+"""
+
 from covid19plotter.plots import PlotBase
 
 DATA_DESCRIPTION = "Total Cases"
 
 
 class TotalPlot(PlotBase):
+    """
+    TotalPlot class. See module documentation for more information.
+    """
+    
     def _get_title(self):
         return DATA_DESCRIPTION
 
