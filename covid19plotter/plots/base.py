@@ -3,7 +3,9 @@ from matplotlib.ticker import MaxNLocator
 
 DEFAULT_TITLE = "COVID-19 Data"
 
-# 3/1/20
+# First day data was collected
+EARLIEST = "1/22/20"
+
 STARTING_DAY = "3/1/20"
 
 MAX_XTICKS = 10
@@ -16,7 +18,7 @@ class PlotBase:
 
     def plot(self, df, title=DEFAULT_TITLE):
         self._df = df
-        self._series = self._transform_series(df.sum()[STARTING_DAY:])
+        self._series = self._transform_series(df.sum()[EARLIEST:])
 
         plt.figure(num=title)
         self._plot()
@@ -53,7 +55,7 @@ class PlotBase:
         plt.plot(self._series)
 
     def _transform_series(self, series):
-        return series
+        return series[STARTING_DAY:]
 
     def _get_subtitle(self):
         return "Last Updated: " + self._df.columns[-1]

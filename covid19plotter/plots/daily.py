@@ -27,8 +27,7 @@ class DailyPlot(PlotBase):
 
     def _transform_series(self, series):
         transformed_series = series - series.shift(1)
-        transformed_series[0] = series[0]
-        return transformed_series
+        return super()._transform_series(transformed_series)
 
     def _get_title(self):
         return DATA_DESCRIPTION
