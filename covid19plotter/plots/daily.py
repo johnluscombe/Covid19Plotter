@@ -26,6 +26,11 @@ class DailyPlot(PlotBase):
 
         series = pd.Series(self._data)
         moving_average = series.rolling(ONE_WEEK).mean().values.tolist()
+
+        # Move moving average line back a few days so it follows the trend of
+        # the main line
+        moving_average = moving_average[round((ONE_WEEK-1)/2):]
+
         plt.plot(moving_average, color=MOVING_AVG_COLOR,
                  linestyle=MOVING_AVG_STYLE)
 
