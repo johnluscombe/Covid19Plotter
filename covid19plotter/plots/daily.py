@@ -5,6 +5,11 @@ from covid19plotter.plots import PlotBase
 
 DATA_DESCRIPTION = "Daily Cases"
 
+ONE_WEEK = 7
+
+MOVING_AVG_COLOR = (0.12, 0.47, 0.71, 0.5)
+MOVING_AVG_STYLE = "--"
+
 
 def get_array_diffs(arr):
     if len(arr) > 0:
@@ -19,8 +24,10 @@ class DailyPlot(PlotBase):
     def _plot(self):
         super()._plot()
 
-        moving_average = pd.Series(self._data).rolling(7).mean().values.tolist()
-        plt.plot(moving_average, color=(0.12, 0.47, 0.71, 0.5), linestyle="--")
+        series = pd.Series(self._data)
+        moving_average = series.rolling(ONE_WEEK).mean().values.tolist()
+        plt.plot(moving_average, color=MOVING_AVG_COLOR,
+                 linestyle=MOVING_AVG_STYLE)
 
     def _get_data(self):
         return get_array_diffs(super()._get_data())
