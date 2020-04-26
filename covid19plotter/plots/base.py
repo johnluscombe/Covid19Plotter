@@ -1,6 +1,7 @@
 import math
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 DEFAULT_TITLE = "COVID-19 Data"
 
@@ -45,8 +46,13 @@ class PlotBase:
         # Make x-axis dates smaller so they can fit
         plt.tick_params(axis="x", labelsize=8)
 
+        fig = plt.gcf()
+
         # Add margin below the plot so x-axis dates can fit
-        plt.gcf().subplots_adjust(bottom=0.2)
+        fig.subplots_adjust(bottom=0.2)
+
+        # Make sure y-axis only uses integers
+        fig.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
 
         plt.xlabel(self._get_xlabel())
         plt.ylabel(self._get_ylabel())
