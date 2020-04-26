@@ -7,12 +7,12 @@ The data comes from John Hopkins University:
 https://github.com/CSSEGISandData/COVID-19
 """
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 from covid19plotter.aliases import STATE_ABBREVIATIONS
+from covid19plotter.plots import DailyPlot
+from covid19plotter.plots import TotalPlot
 from covid19plotter.utils import array_to_lower_case
-from covid19plotter.utils import get_array_diffs
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
            "/csse_covid_19_time_series/time_series_covid19_%s_US.csv "
@@ -56,27 +56,27 @@ class Covid19Plotter:
             else:
                 df = self.confirmed_df
 
-            location = "US"
-
             state = self._get_state(df)
             if state != "":
-                location = state
                 df = df[df[STATE] == state]
 
                 if len(df) > 1:
                     county = self._get_county(df)
                     if county != "":
-                        location = county + " County, " + state
                         df = df[df[COUNTY] == county]
 
             if mode == TOTAL_CONFIRMED_MODE:
-                self._plot_total(df, location, "Total Confirmed")
+                plot = TotalPlot()
+                plot.plot(df, title="Total Confirmed Cases")
             elif mode == NEW_CONFIRMED_MODE:
-                self._plot_new(df, location, "New Confirmed")
+                plot = DailyPlot()
+                plot.plot(df, title="Daily Confirmed Cases")
             elif mode == TOTAL_DEATHS_MODE:
-                self._plot_total(df, location, "Total Deaths")
+                plot = TotalPlot()
+                plot.plot(df, title="Total Deaths")
             elif mode == NEW_DEATHS_MODE:
-                self._plot_new(df, location, "New Deaths")
+                plot = DailyPlot()
+                plot.plot(df, title="Daily Deaths")
     
     def _get_mode(self):
         """
@@ -125,6 +125,9 @@ class Covid19Plotter:
             print("Invalid state.")
             state = self._input()
 
+            if state in STATE_ABBREVIATIONS:
+                state = STATE_ABBREVIATIONS[state]
+
         return state
 
     def _get_county(self, state_df):
@@ -162,78 +165,6 @@ class Covid19Plotter:
         if i == "exit" or i == "quit":
             exit()
         return i
-
-    def _plot_total(self, df, location, data_desc):
-        """
-        Plots the total number of a particular statistic to date (i.e.
-        confirmed cases, deaths).
-
-        Args:
-            df (:class:`~pd.DataFrame`): `~pd.DataFrame` to plot.
-            location (str): Location that the data represents, regardless of
-                scope (i.e. "US" or "Michigan").
-            data_desc (str): Description of the data (i.e. "Total Confirmed").
-        """
-
-        last_updated = df.columns[-1]
-        df = df.sum()[STARTING_DAY:]
-
-        self._plot(df.values.tolist(), location, last_updated, data_desc)
-    
-    def _plot_new(self, df, location, data_desc):
-        """
-        Plots the daily number of a particular statistic. (i.e. confirmed
-        cases, deaths).
-
-        Args:
-            df (:class:`~pd.DataFrame`): `~pd.DataFrame` to plot.
-            location (str): Location that the data represents, regardless of
-                scope (i.e. "US" or "Michigan").
-            data_desc (str): Description of the data (i.e. "Total Confirmed").
-        """
-
-        last_updated = df.columns[-1]
-        df = df.sum()[STARTING_DAY:]
-        lst = get_array_diffs(df.values.tolist())
-
-        self._plot(lst, location, last_updated, data_desc)
-    
-    def _plot(self, data, location, last_updated, data_desc):
-        """
-        Plots the given data.
-
-        Args:
-            data (list): Data to plot.
-            location (str): Location that the data represents, regardless of
-                scope (i.e. "US" or "Michigan").
-            last_updated (str): Date that the data was last updated.
-            data_desc (str): Description of the data (i.e. "Total Confirmed").
-        """
-
-        title = "%s %s (Last Updated %s)" % (location, data_desc, last_updated)
-
-        plt.figure(num=title)
-        plt.plot(data)
-        plt.xlabel("Days Since 3/1/20")
-        plt.ylabel(data_desc)
-        plt.suptitle(title)
-        plt.title("%s: %s" % (data_desc, data[-1]), size=8)
-        plt.grid()
-        plt.show()
-
-    def _get_state_confirmed_data(self, state):
-        """
-        Gets the confirmed cases data for the given state.
-
-        Args:
-            state (str): State to use to get the confirmed cases data.
-
-        Returns:
-            :class:`~pd.DataFrame`
-        """
-
-        df = self.confirmed_df
-        return df[df[STATE] == state].sum()[STARTING_DAY:]
 
 
 if __name__ == "__main__":
