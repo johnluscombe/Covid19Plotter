@@ -14,7 +14,7 @@ class TotalPlot(PlotBase):
     """
     TotalPlot class. See module documentation for more information.
     """
-    
+
     def _get_title(self):
         return DATA_DESCRIPTION
 

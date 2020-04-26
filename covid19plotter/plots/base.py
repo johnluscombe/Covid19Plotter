@@ -13,8 +13,6 @@ DEFAULT_TITLE = "COVID-19 Data"
 # First day data was collected
 EARLIEST = "1/22/20"
 
-STARTING_DAY = "3/1/20"
-
 MAX_XTICKS = 10
 
 
@@ -34,6 +32,7 @@ class PlotBase:
     def __init__(self):
         self._df = None
         self._series = None
+        self._starting_day = EARLIEST
 
     def plot(self, df, title=DEFAULT_TITLE):
         """
@@ -44,21 +43,24 @@ class PlotBase:
             title (str): Title to display on the plot.
         """
 
+        series = df.sum()[EARLIEST:]
+        self._starting_day = self._get_starting_day(series)
+
         self._df = df
-        self._series = self._transform_series(df.sum()[EARLIEST:])
+        self._series = self._transform_series(series)
 
         plt.figure(num=title)
         self._plot()
 
         plt.xticks(rotation=90)
 
-        # Make x-axis dates smaller so they can fit
-        plt.tick_params(axis="x", labelsize=8)
+        # Make tick labels smaller so they can fit
+        plt.tick_params(labelsize=8)
 
         fig = plt.gcf()
 
         # Add margin below the plot so x-axis dates can fit
-        fig.subplots_adjust(bottom=0.2)
+        fig.subplots_adjust(bottom=0.15)
 
         ax = fig.gca()
         ax.xaxis.set_major_locator(MaxNLocator(MAX_XTICKS))
@@ -66,7 +68,6 @@ class PlotBase:
         # Make sure y-axis only uses integers
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-        plt.xlabel(self._get_xlabel())
         plt.ylabel(self._get_ylabel())
         plt.suptitle(title)
         plt.title(self._get_subtitle(), size=8)
@@ -81,6 +82,20 @@ class PlotBase:
 
         plt.plot(self._series)
 
+    def _get_starting_day(self, series):
+        """
+        Gets the starting day to use for the plot. This is calculated by
+        determining the first day 1% of the total cases today was reported.
+
+        Args:
+            series (:class:`~pd.Series`): Series containing all data values.
+
+        Returns:
+            str
+        """
+
+        return (series > series.max() * 0.01).idxmax()
+
     def _transform_series(self, series):
         """
         Transforms the given series of values to plot it how we want. The given
@@ -93,7 +108,7 @@ class PlotBase:
             :class:`~pd.Series`
         """
 
-        return series[STARTING_DAY:]
+        return series[self._starting_day:]
 
     def _get_subtitle(self):
         """
@@ -104,16 +119,6 @@ class PlotBase:
         """
 
         return "Last Updated: " + self._df.columns[-1]
-
-    def _get_xlabel(self):
-        """
-        Gets the x-axis label.
-
-        Returns:
-            str
-        """
-
-        return "Days Since " + STARTING_DAY
 
     def _get_ylabel(self):
         """

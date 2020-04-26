@@ -36,8 +36,12 @@ class DailyPlot(PlotBase):
         plt.plot(moving_average, color=MOVING_AVG_COLOR,
                  linestyle=MOVING_AVG_STYLE)
 
+    def _get_starting_day(self, series):
+        daily_values = self._get_daily_values(series)
+        return (daily_values > daily_values.max() * 0.01).idxmax()
+
     def _transform_series(self, series):
-        transformed_series = series - series.shift(1)
+        transformed_series = self._get_daily_values(series)
         return super()._transform_series(transformed_series)
 
     def _get_title(self):
@@ -49,3 +53,18 @@ class DailyPlot(PlotBase):
 
     def _get_ylabel(self):
         return DATA_DESCRIPTION
+
+    def _get_daily_values(self, series):
+        """
+        Returns the increase in value at each index in the given
+        :class:`~pd.Series`.
+
+        Args:
+            series (:class:`~pd.Series`): :class:`~pd.Series` to use to
+                calculate the increase in values.
+
+        Returns:
+            :class:`~pd.Series`
+        """
+
+        return series - series.shift(1)
