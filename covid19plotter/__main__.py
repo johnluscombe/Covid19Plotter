@@ -22,8 +22,11 @@ NEW_CONFIRMED_MODE = 2
 TOTAL_DEATHS_MODE = 3
 NEW_DEATHS_MODE = 4
 
-# 3/1/20
-STARTING_DAY = 43
+GLOBAL = "global"
+US = "US"
+
+CONFIRMED = "confirmed"
+DEATHS = "deaths"
 
 TOTAL_CASES = "Total Cases"
 NEW_CASES = "New Cases"
@@ -46,10 +49,10 @@ class Covid19Plotter:
 
     def __init__(self):
         print("Loading...")
-        self.global_confirmed_df = pd.read_csv(BASE_URL % ("confirmed", "global"))
-        self.global_deaths_df = pd.read_csv(BASE_URL % ("deaths", "global"))
-        self.us_confirmed_df = pd.read_csv(BASE_URL % ("confirmed", "US"))
-        self.us_deaths_df = pd.read_csv(BASE_URL % ("deaths", "US"))
+        self.global_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, GLOBAL))
+        self.global_deaths_df = pd.read_csv(BASE_URL % (DEATHS, GLOBAL))
+        self.us_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, US))
+        self.us_deaths_df = pd.read_csv(BASE_URL % (DEATHS, US))
 
     def plot(self):
         """
@@ -66,7 +69,7 @@ class Covid19Plotter:
                 df = self.global_confirmed_df
 
             country = self._get_country(df)
-            if country == "US":
+            if country == US:
                 if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
                     df = self.us_deaths_df
                 else:
@@ -77,7 +80,7 @@ class Covid19Plotter:
             if len(df) > 1:
                 state = self._get_state(df, country)
                 if state != "":
-                    if country == "US":
+                    if country == US:
                         df = df[df[STATE] == state]
                     else:
                         df = df[df[PROVINCE] == state]
@@ -163,7 +166,7 @@ class Covid19Plotter:
 
         state = self._input()
 
-        if country == "US":
+        if country == US:
             state_df = country_df[STATE]
         else:
             state_df = country_df[PROVINCE]

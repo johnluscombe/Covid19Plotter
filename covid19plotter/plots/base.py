@@ -1,4 +1,5 @@
 import math
+import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -24,7 +25,7 @@ class PlotBase:
         self._data = self._get_data()
 
         plt.figure(num=title)
-        plt.plot(self._data)
+        self._plot()
 
         # Get the dates the for x-axis
         xticklabels = self._df.columns[self._starting_day_idx:].values.tolist()
@@ -60,6 +61,14 @@ class PlotBase:
         plt.title(self._get_subtitle(), size=8)
         plt.grid()
         plt.show()
+
+    def _plot(self):
+        """
+        Internal method responsible for actually plotting the line(s) on the
+        plot.
+        """
+
+        plt.plot(self._data)
 
     def _get_data(self):
         return self._df.sum()[self._starting_day_idx:].values.tolist()

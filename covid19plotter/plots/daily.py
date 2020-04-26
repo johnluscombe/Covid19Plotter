@@ -1,3 +1,6 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from covid19plotter.plots import PlotBase
 
 DATA_DESCRIPTION = "Daily Cases"
@@ -13,6 +16,12 @@ def get_array_diffs(arr):
 
 
 class DailyPlot(PlotBase):
+    def _plot(self):
+        super()._plot()
+
+        moving_average = pd.Series(self._data).rolling(7).mean().values.tolist()
+        plt.plot(moving_average, color=(0.12, 0.47, 0.71, 0.5), linestyle="--")
+
     def _get_data(self):
         return get_array_diffs(super()._get_data())
 
