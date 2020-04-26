@@ -15,7 +15,7 @@ from covid19plotter.plots import TotalPlot
 from covid19plotter.utils import array_to_lower_case
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
-           "/csse_covid_19_time_series/time_series_covid19_%s_US.csv "
+           "/csse_covid_19_time_series/time_series_covid19_%s_%s.csv "
 
 TOTAL_CONFIRMED_MODE = 1
 NEW_CONFIRMED_MODE = 2
@@ -28,7 +28,14 @@ STARTING_DAY = 43
 TOTAL_CASES = "Total Cases"
 NEW_CASES = "New Cases"
 
+COUNTRY = "Country/Region"
+
+# Province/state header for the US
 STATE = "Province_State"
+
+# Province/state header for non-US countries/regions
+PROVINCE = "Province/State"
+
 COUNTY = "Admin2"
 
 
@@ -39,8 +46,10 @@ class Covid19Plotter:
 
     def __init__(self):
         print("Loading...")
-        self.confirmed_df = pd.read_csv(BASE_URL % "confirmed")
-        self.deaths_df = pd.read_csv(BASE_URL % "deaths")
+        self.global_confirmed_df = pd.read_csv(BASE_URL % ("confirmed", "global"))
+        self.global_deaths_df = pd.read_csv(BASE_URL % ("deaths", "global"))
+        self.us_confirmed_df = pd.read_csv(BASE_URL % ("confirmed", "US"))
+        self.us_deaths_df = pd.read_csv(BASE_URL % ("deaths", "US"))
 
     def plot(self):
         """
@@ -52,18 +61,31 @@ class Covid19Plotter:
             mode = self._get_mode()
 
             if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
-                df = self.deaths_df
+                df = self.global_deaths_df
             else:
-                df = self.confirmed_df
+                df = self.global_confirmed_df
 
-            state = self._get_state(df)
-            if state != "":
-                df = df[df[STATE] == state]
+            country = self._get_country(df)
+            if country == "US":
+                if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
+                    df = self.us_deaths_df
+                else:
+                    df = self.us_confirmed_df
+            else:
+                df = df[df[COUNTRY] == country]
 
-                if len(df) > 1:
-                    county = self._get_county(df)
-                    if county != "":
-                        df = df[df[COUNTY] == county]
+            if len(df) > 1:
+                state = self._get_state(df, country)
+                if state != "":
+                    if country == "US":
+                        df = df[df[STATE] == state]
+                    else:
+                        df = df[df[PROVINCE] == state]
+
+                    if len(df) > 1:
+                        county = self._get_county(df)
+                        if county != "":
+                            df = df[df[COUNTY] == county]
 
             if mode == TOTAL_CONFIRMED_MODE:
                 plot = TotalPlot()
@@ -100,23 +122,53 @@ class Covid19Plotter:
             mode = self._input()
         
         return int(mode)
+
+    def _get_country(self, global_df):
+        """
+        Gets the desired country/region from the user.
+
+        Args:
+            global_df (:class:`~pd.DataFrame`): `~pd.DataFrame` for non-US
+                countries.
+
+        Returns:
+            str
+        """
+
+        print("Which country/region do you want to view?")
+
+        country = self._input()
+        countries = array_to_lower_case(global_df[COUNTRY].tolist())
+
+        while country.lower() not in countries:
+            print("Invalid country.")
+            country = self._input()
+
+        return country
     
-    def _get_state(self, country_df):
+    def _get_state(self, country_df, country):
         """
         Gets the desired state from the user.
 
         Args:
             country_df (:class:`~pd.DataFrame`): `~pd.DataFrame` for the entire
                 country.
+            country (str): Country selected by the user.
 
         Returns:
             str
         """
 
-        print("Which state do you want to view? (Just press ENTER to see whole country)")
+        print("Which state/province do you want to view? (Just press ENTER to see whole country)")
 
         state = self._input()
-        states = array_to_lower_case(country_df[STATE].tolist())
+
+        if country == "US":
+            state_df = country_df[STATE]
+        else:
+            state_df = country_df[PROVINCE]
+
+        states = array_to_lower_case(state_df.tolist())
 
         if state in STATE_ABBREVIATIONS:
             state = STATE_ABBREVIATIONS[state]
