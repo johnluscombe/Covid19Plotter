@@ -8,7 +8,7 @@ Base functionality common to all plots.
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
-DEFAULT_TITLE = "COVID-19 Data"
+DEFAULT_DATA_DESC = "Values"
 
 # First day data was collected
 EARLIEST = "1/22/20"
@@ -34,13 +34,13 @@ class PlotBase:
         self._series = None
         self._starting_day = EARLIEST
 
-    def plot(self, df, title=DEFAULT_TITLE):
+    def plot(self, df, data_desc=DEFAULT_DATA_DESC):
         """
         Plots the given :class:`~pd.DataFrame`.
 
         Args:
             df (:class:`~pd.DataFrame`): :class:`~pd.DataFrame` to plot.
-            title (str): Title to display on the plot.
+            data_desc (str): Description of the data.
         """
 
         series = df.sum()[EARLIEST:]
@@ -48,6 +48,8 @@ class PlotBase:
 
         self._df = df
         self._series = self._transform_series(series)
+
+        title = self._get_title(data_desc)
 
         plt.figure(num=title)
         self._plot()
@@ -68,9 +70,8 @@ class PlotBase:
         # Make sure y-axis only uses integers
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
-        plt.ylabel(self._get_ylabel())
         plt.suptitle(title)
-        plt.title(self._get_subtitle(), size=8)
+        plt.title(self._get_subtitle(data_desc), size=8)
         plt.grid()
         plt.show()
 
@@ -110,22 +111,30 @@ class PlotBase:
 
         return series[self._starting_day:]
 
-    def _get_subtitle(self):
+    def _get_title(self, data_desc):
         """
-        Gets the text to display below the title of the plot.
+        Gets the title for the plot.
 
-        Returns:
-            str
-        """
-
-        return "Last Updated: " + self._df.columns[-1]
-
-    def _get_ylabel(self):
-        """
-        Gets the y-axis label.
+        Args:
+            data_desc (str): Description of the data (e.g. "confirmed cases",
+                "deaths").
 
         Returns:
             str
         """
 
         return None
+
+    def _get_subtitle(self, data_desc):
+        """
+        Gets the text to display below the title of the plot.
+
+        Args:
+            data_desc (str): Description of the data (e.g. "confirmed cases",
+                "deaths").
+
+        Returns:
+            str
+        """
+
+        return "Last Updated: " + self._df.columns[-1]

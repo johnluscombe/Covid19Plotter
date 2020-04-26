@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from covid19plotter.plots import PlotBase
 
-DATA_DESCRIPTION = "Daily Cases"
+DAILY = "Daily"
 
 ONE_WEEK = 7
 
@@ -44,15 +44,12 @@ class DailyPlot(PlotBase):
         transformed_series = self._get_daily_values(series)
         return super()._transform_series(transformed_series)
 
-    def _get_title(self):
-        return DATA_DESCRIPTION
+    def _get_title(self, data_desc):
+        return "%s %s" % (DAILY, data_desc)
 
-    def _get_subtitle(self):
+    def _get_subtitle(self, data_desc):
         last_updated = self._df.columns[-1]
-        return "Confirmed Cases on %s: %s" % (last_updated, self._series[-1])
-
-    def _get_ylabel(self):
-        return DATA_DESCRIPTION
+        return data_desc + " on %s: %s" % (last_updated, self._series[-1])
 
     def _get_daily_values(self, series):
         """

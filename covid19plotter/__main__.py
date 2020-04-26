@@ -21,12 +21,15 @@ TOTAL_CONFIRMED_MODE = 1
 NEW_CONFIRMED_MODE = 2
 TOTAL_DEATHS_MODE = 3
 NEW_DEATHS_MODE = 4
+TOTAL_RECOVERIES_MODE = 5
+NEW_RECOVERIES_MODE = 6
 
 GLOBAL = "global"
 US = "US"
 
 CONFIRMED = "confirmed"
 DEATHS = "deaths"
+RECOVERED = "recovered"
 
 TOTAL_CASES = "Total Cases"
 NEW_CASES = "New Cases"
@@ -51,6 +54,7 @@ class Covid19Plotter:
         print("Loading...")
         self.global_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, GLOBAL))
         self.global_deaths_df = pd.read_csv(BASE_URL % (DEATHS, GLOBAL))
+        self.global_recoveries_df = pd.read_csv(BASE_URL % (RECOVERED, GLOBAL))
         self.us_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, US))
         self.us_deaths_df = pd.read_csv(BASE_URL % (DEATHS, US))
 
@@ -63,13 +67,15 @@ class Covid19Plotter:
         while True:
             mode = self._get_mode()
 
-            if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
+            if mode in [TOTAL_DEATHS_MODE, NEW_DEATHS_MODE]:
                 df = self.global_deaths_df
+            elif mode in [TOTAL_RECOVERIES_MODE, NEW_RECOVERIES_MODE]:
+                df = self.global_recoveries_df
             else:
                 df = self.global_confirmed_df
 
             country = self._get_country(df)
-            if country == US:
+            if country == US and mode not in [TOTAL_RECOVERIES_MODE, NEW_RECOVERIES_MODE]:
                 if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
                     df = self.us_deaths_df
                 else:
@@ -111,17 +117,23 @@ class Covid19Plotter:
 
             if mode == TOTAL_CONFIRMED_MODE:
                 plot = TotalPlot()
-                plot.plot(df, title="Total Confirmed Cases")
+                plot.plot(df, data_desc="Confirmed Cases")
             elif mode == NEW_CONFIRMED_MODE:
                 plot = DailyPlot()
-                plot.plot(df, title="Daily Confirmed Cases")
+                plot.plot(df, data_desc="Confirmed Cases")
             elif mode == TOTAL_DEATHS_MODE:
                 plot = TotalPlot()
-                plot.plot(df, title="Total Deaths")
+                plot.plot(df, data_desc="Deaths")
             elif mode == NEW_DEATHS_MODE:
                 plot = DailyPlot()
-                plot.plot(df, title="Daily Deaths")
-    
+                plot.plot(df, data_desc="Deaths")
+            elif mode == TOTAL_RECOVERIES_MODE:
+                plot = TotalPlot()
+                plot.plot(df, data_desc="Recoveries")
+            elif mode == NEW_RECOVERIES_MODE:
+                plot = DailyPlot()
+                plot.plot(df, data_desc="Recoveries")
+
     def _get_mode(self):
         """
         Gets the desired plotting mode from the user.
@@ -135,10 +147,12 @@ class Covid19Plotter:
         print("2 - New confirmed")
         print("3 - Total deaths")
         print("4 - New deaths")
+        print("5 - Total recoveries")
+        print("6 - New recoveries")
 
         mode = self._input()
 
-        while mode not in "1234":
+        while mode not in "123456":
             if mode != "":
                 print("Invalid input.")
             mode = self._input()
