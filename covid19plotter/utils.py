@@ -1,6 +1,7 @@
 def array_to_lower_case(arr):
     for i in range(len(arr)):
-        arr[i] = arr[i].lower()
+        if type(arr[i]) == str:
+            arr[i] = arr[i].lower()
     return arr
 
 

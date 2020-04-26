@@ -79,15 +79,34 @@ class Covid19Plotter:
 
             if len(df) > 1:
                 state = self._get_state(df, country)
-                if state != "":
-                    if country == US:
-                        df = df[df[STATE] == state]
-                    else:
-                        df = df[df[PROVINCE] == state]
+
+                if country == US:
+                    state_header = STATE
+                else:
+                    state_header = PROVINCE
+
+                if state == "":
+                    state_nan_df = df[state_header].isna()
+
+                    if state_nan_df.sum() == 1:
+                        # If a row exists in the country data frame where the
+                        # state is NaN, it is the total row, so use that for
+                        # the data
+                        df = df[state_nan_df]
+                else:
+                    df = df[df[state_header] == state]
 
                     if len(df) > 1:
                         county = self._get_county(df)
-                        if county != "":
+                        if county == "":
+                            county_nan_df = df[COUNTY].isna()
+
+                            if county_nan_df.sum() == 1:
+                                # If a row exists in the state data frame where
+                                # the country is NaN, it is the total row, so
+                                # use that for the data
+                                df = df[county_nan_df]
+                        else:
                             df = df[df[COUNTY] == county]
 
             if mode == TOTAL_CONFIRMED_MODE:
