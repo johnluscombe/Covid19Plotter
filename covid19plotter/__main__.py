@@ -7,6 +7,7 @@ The data comes from John Hopkins University:
 https://github.com/CSSEGISandData/COVID-19
 """
 
+from datetime import datetime
 import pandas as pd
 
 from covid19plotter.aliases import STATE_ABBREVIATIONS
@@ -23,6 +24,8 @@ TOTAL_DEATHS_MODE = 3
 NEW_DEATHS_MODE = 4
 TOTAL_RECOVERIES_MODE = 5
 NEW_RECOVERIES_MODE = 6
+
+DATE_FORMAT = "%m/%d/%y"
 
 GLOBAL = "global"
 US = "US"
@@ -57,6 +60,16 @@ class Covid19Plotter:
         self.global_recoveries_df = pd.read_csv(BASE_URL % (RECOVERED, GLOBAL))
         self.us_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, US))
         self.us_deaths_df = pd.read_csv(BASE_URL % (DEATHS, US))
+
+        dates = []
+
+        for df in [self.global_confirmed_df, self.global_deaths_df,
+                   self.global_recoveries_df, self.us_confirmed_df,
+                   self.us_deaths_df]:
+
+            dates.append(datetime.strptime(df.columns[-1], DATE_FORMAT))
+
+        print("Last Updated: %s\n" % max(dates).strftime(DATE_FORMAT))
 
     def plot(self):
         """
