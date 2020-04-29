@@ -11,19 +11,13 @@ from datetime import datetime
 import pandas as pd
 
 from covid19plotter.aliases import STATE_ABBREVIATIONS
+from covid19plotter.mode import Mode
 from covid19plotter.plots import DailyPlot
 from covid19plotter.plots import TotalPlot
-from covid19plotter.utils import array_to_lower_case
+from covid19plotter.utils import list_to_lower_case
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
            "/csse_covid_19_time_series/time_series_covid19_%s_%s.csv "
-
-TOTAL_CONFIRMED_MODE = 1
-NEW_CONFIRMED_MODE = 2
-TOTAL_DEATHS_MODE = 3
-NEW_DEATHS_MODE = 4
-TOTAL_RECOVERIES_MODE = 5
-NEW_RECOVERIES_MODE = 6
 
 DATE_FORMAT = "%m/%d/%y"
 
@@ -80,16 +74,19 @@ class Covid19Plotter:
         while True:
             mode = self._get_mode()
 
-            if mode in [TOTAL_DEATHS_MODE, NEW_DEATHS_MODE]:
+            if Mode.is_deaths_mode(mode):
                 df = self.global_deaths_df
-            elif mode in [TOTAL_RECOVERIES_MODE, NEW_RECOVERIES_MODE]:
+                data_desc = "Deaths"
+            elif Mode.is_recoveries_mode(mode):
                 df = self.global_recoveries_df
+                data_desc = "Recoveries"
             else:
                 df = self.global_confirmed_df
+                data_desc = "Confirmed Cases"
 
             country = self._get_country(df)
-            if country == US and mode not in [TOTAL_RECOVERIES_MODE, NEW_RECOVERIES_MODE]:
-                if mode == TOTAL_DEATHS_MODE or mode == NEW_DEATHS_MODE:
+            if country == US and not Mode.is_recoveries_mode(mode):
+                if Mode.is_deaths_mode(mode):
                     df = self.us_deaths_df
                 else:
                     df = self.us_confirmed_df
@@ -128,24 +125,12 @@ class Covid19Plotter:
                         else:
                             df = df[df[COUNTY] == county]
 
-            if mode == TOTAL_CONFIRMED_MODE:
+            if Mode.is_total_mode(mode):
                 plot = TotalPlot()
-                plot.plot(df, data_desc="Confirmed Cases")
-            elif mode == NEW_CONFIRMED_MODE:
+            else:
                 plot = DailyPlot()
-                plot.plot(df, data_desc="Confirmed Cases")
-            elif mode == TOTAL_DEATHS_MODE:
-                plot = TotalPlot()
-                plot.plot(df, data_desc="Deaths")
-            elif mode == NEW_DEATHS_MODE:
-                plot = DailyPlot()
-                plot.plot(df, data_desc="Deaths")
-            elif mode == TOTAL_RECOVERIES_MODE:
-                plot = TotalPlot()
-                plot.plot(df, data_desc="Recoveries")
-            elif mode == NEW_RECOVERIES_MODE:
-                plot = DailyPlot()
-                plot.plot(df, data_desc="Recoveries")
+
+            plot.plot(df, data_desc)
 
     def _get_mode(self):
         """
@@ -187,7 +172,7 @@ class Covid19Plotter:
         print("Which country/region do you want to view?")
 
         country = self._input()
-        countries = array_to_lower_case(global_df[COUNTRY].tolist())
+        countries = list_to_lower_case(global_df[COUNTRY].tolist())
 
         while country.lower() not in countries:
             print("Invalid country.")
@@ -217,7 +202,7 @@ class Covid19Plotter:
         else:
             state_df = country_df[PROVINCE]
 
-        states = array_to_lower_case(state_df.tolist())
+        states = list_to_lower_case(state_df.tolist())
 
         if state in STATE_ABBREVIATIONS:
             state = STATE_ABBREVIATIONS[state]
@@ -246,7 +231,7 @@ class Covid19Plotter:
         print("Which county do you want to view? (Just press ENTER to see whole state)")
 
         county = self._input()
-        counties = array_to_lower_case(state_df[COUNTY].tolist())
+        counties = list_to_lower_case(state_df[COUNTY].tolist())
 
         while county != "" and county.lower() not in counties:
             print("Invalid county.")

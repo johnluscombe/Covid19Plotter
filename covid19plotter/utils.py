@@ -1,14 +1,23 @@
-def array_to_lower_case(arr):
-    for i in range(len(arr)):
-        if type(arr[i]) == str:
-            arr[i] = arr[i].lower()
-    return arr
+"""
+Utils
+=====
+
+Utilities used throughout the app.
+"""
 
 
-def get_array_diffs(arr):
-    if len(arr) > 0:
-        diffs = arr[:1]
-        for i in range(1, len(arr)):
-            diffs.append(arr[i] - arr[i - 1])
-        return diffs
-    return []
+def list_to_lower_case(lst):
+    """
+    Converts the strings in the given list to lower-case.
+
+    Args:
+        lst (list): List to convert to lower-case.
+
+    Returns:
+        list
+    """
+
+    for i in range(len(lst)):
+        if type(lst[i]) == str:
+            lst[i] = lst[i].lower()
+    return lst
