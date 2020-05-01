@@ -34,13 +34,15 @@ class PlotBase:
         self._series = None
         self._starting_day = EARLIEST
 
-    def plot(self, df, data_desc=DEFAULT_DATA_DESC):
+    def plot(self, df, data_desc=DEFAULT_DATA_DESC, location=None):
         """
         Plots the given :class:`~pd.DataFrame`.
 
         Args:
             df (:class:`~pd.DataFrame`): :class:`~pd.DataFrame` to plot.
             data_desc (str): Description of the data.
+            location (list): List of locations for the plot, from specific to
+                general (e.g. ["Washtenaw", "MI", "US])
         """
 
         series = df.sum()[EARLIEST:]
@@ -49,7 +51,7 @@ class PlotBase:
         self._df = df
         self._series = self._transform_series(series)
 
-        title = self._get_title(data_desc)
+        title = self._get_title(data_desc, location)
 
         plt.figure(num=title)
         self._plot()
@@ -111,13 +113,15 @@ class PlotBase:
 
         return series[self._starting_day:]
 
-    def _get_title(self, data_desc):
+    def _get_title(self, data_desc, location):
         """
         Gets the title for the plot.
 
         Args:
             data_desc (str): Description of the data (e.g. "confirmed cases",
                 "deaths").
+            location (list): List of locations for the plot, from specific to
+                general (e.g. ["Washtenaw", "MI", "US])
 
         Returns:
             str

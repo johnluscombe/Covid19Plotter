@@ -81,6 +81,9 @@ class Covid19Plotter:
             global_df = self._get_global_df(mode)
 
             country = self._prompt_for_country(global_df)
+            state = None
+            county = None
+
             df = self._get_country_df(mode, country, global_df)
 
             data_desc = self._get_data_desc(mode)
@@ -95,8 +98,10 @@ class Covid19Plotter:
                     county = self._prompt_for_county(df)
                     df = self._filter_df(df, COUNTY, county)
 
+            location = self._get_location_list(country, state, county)
+
             plot = TotalPlot() if Mode.is_total_mode(mode) else DailyPlot()
-            plot.plot(df, data_desc)
+            plot.plot(df, data_desc, location)
 
     def _get_global_df(self, mode):
         """
@@ -152,6 +157,30 @@ class Covid19Plotter:
         elif Mode.is_recoveries_mode(mode):
             return RECOVERIES_DATA_DESC
         return CONFIRMED_DATA_DESC
+
+    def _get_location_list(self, country, state, county):
+        """
+        Gets a list of the location of the plot, from specific to general.
+
+        Args:
+            country (str): Country of the plot.
+            state (str): State of the plot.
+            county (str): County of the plot.
+
+        Returns:
+            lst
+        """
+
+        location_list = []
+
+        if county:
+            location_list.append(county + " County")
+        if state:
+            location_list.append(state)
+        if country:
+            location_list.append(country)
+
+        return location_list
 
     def _filter_df(self, df, key, value):
         """

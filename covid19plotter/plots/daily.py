@@ -44,8 +44,12 @@ class DailyPlot(PlotBase):
         transformed_series = self._get_daily_values(series)
         return super()._transform_series(transformed_series)
 
-    def _get_title(self, data_desc):
-        return "%s %s" % (DAILY, data_desc)
+    def _get_title(self, data_desc, location):
+        location_str = ""
+        if type(location) == list:
+            location_str = ", ".join(location)
+
+        return "%s %s (%s)" % (DAILY, data_desc, location_str)
 
     def _get_subtitle(self, data_desc):
         last_updated = self._df.columns[-1]
