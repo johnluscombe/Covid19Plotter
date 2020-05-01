@@ -39,6 +39,10 @@ STATE = "Province_State"
 # Province/state header for non-US countries/regions
 PROVINCE = "Province/State"
 
+CONFIRMED_DATA_DESC = "Confirmed Cases"
+DEATHS_DATA_DESC = "Deaths"
+RECOVERIES_DATA_DESC = "Recoveries"
+
 COUNTY = "Admin2"
 
 
@@ -72,67 +76,111 @@ class Covid19Plotter:
         """
 
         while True:
-            mode = self._get_mode()
+            mode = self._prompt_for_mode()
 
-            if Mode.is_deaths_mode(mode):
-                df = self.global_deaths_df
-                data_desc = "Deaths"
-            elif Mode.is_recoveries_mode(mode):
-                df = self.global_recoveries_df
-                data_desc = "Recoveries"
-            else:
-                df = self.global_confirmed_df
-                data_desc = "Confirmed Cases"
+            global_df = self._get_global_df(mode)
 
-            country = self._get_country(df)
-            if country == US and not Mode.is_recoveries_mode(mode):
-                if Mode.is_deaths_mode(mode):
-                    df = self.us_deaths_df
-                else:
-                    df = self.us_confirmed_df
-            else:
-                df = df[df[COUNTRY] == country]
+            country = self._prompt_for_country(global_df)
+            df = self._get_country_df(mode, country, global_df)
+
+            data_desc = self._get_data_desc(mode)
 
             if len(df) > 1:
-                state = self._get_state(df, country)
+                state = self._prompt_for_state(df, country)
+                state_header = STATE if country == US else PROVINCE
 
-                if country == US:
-                    state_header = STATE
-                else:
-                    state_header = PROVINCE
+                df = self._filter_df(df, state_header, state)
 
-                if state == "":
-                    state_nan_df = df[state_header].isna()
+                if len(df) > 1 and state:
+                    county = self._prompt_for_county(df)
+                    df = self._filter_df(df, COUNTY, county)
 
-                    if state_nan_df.sum() == 1:
-                        # If a row exists in the country data frame where the
-                        # state is NaN, it is the total row, so use that for
-                        # the data
-                        df = df[state_nan_df]
-                else:
-                    df = df[df[state_header] == state]
-
-                    if len(df) > 1:
-                        county = self._get_county(df)
-                        if county == "":
-                            county_nan_df = df[COUNTY].isna()
-
-                            if county_nan_df.sum() == 1:
-                                # If a row exists in the state data frame where
-                                # the country is NaN, it is the total row, so
-                                # use that for the data
-                                df = df[county_nan_df]
-                        else:
-                            df = df[df[COUNTY] == county]
-
-            if Mode.is_total_mode(mode):
-                plot = TotalPlot()
-            else:
-                plot = DailyPlot()
-
+            plot = TotalPlot() if Mode.is_total_mode(mode) else DailyPlot()
             plot.plot(df, data_desc)
 
-    def _get_mode(self):
+    def _get_global_df(self, mode):
+        """
+        Gets the global :class:`~pd.DataFrame` associated with the given mode.
+
+        Args:
+            mode (int): Plotting mode.
+
+        Returns:
+            :class:`~pd.DataFrame`
+        """
+
+        if Mode.is_deaths_mode(mode):
+            return self.global_deaths_df
+        elif Mode.is_recoveries_mode(mode):
+            return self.global_recoveries_df
+        return self.global_confirmed_df
+
+    def _get_country_df(self, mode, country, global_df):
+        """
+        Gets the :class:`~pd.DataFrame` for the given country.
+
+        Args:
+            mode (int): Plotting mode.
+            country (str): Country to plot.
+            global_df (:class:`~pd.DataFrame`): :class:`~pd.DataFrame` for the
+                whole world.
+
+        Returns:
+            :class:`~pd.DataFrame`
+        """
+
+        if country == US and not Mode.is_recoveries_mode(mode):
+            if Mode.is_deaths_mode(mode):
+                return self.us_deaths_df
+            return self.us_confirmed_df
+        else:
+            return global_df[global_df[COUNTRY] == country]
+
+    def _get_data_desc(self, mode):
+        """
+        Gets the description of the data, using the given mode.
+
+        Args:
+            mode (int): Plotting mode.
+
+        Returns:
+            str
+        """
+
+        if Mode.is_deaths_mode(mode):
+            return DEATHS_DATA_DESC
+        elif Mode.is_recoveries_mode(mode):
+            return RECOVERIES_DATA_DESC
+        return CONFIRMED_DATA_DESC
+
+    def _filter_df(self, df, key, value):
+        """
+        Filters the given :class:`~pd.DataFrame` using the given filter key and
+        value.
+
+        Args:
+            df (:class:`~pd.DataFrame`): :class:`~pd.DataFrame` to filter.
+            key (str): Filter key.
+            value (str): Filter value.
+
+        Returns:
+            :class:`~pd.DataFrame`
+        """
+
+        if not value:
+            nan_df = df[key].isna()
+
+            if nan_df.sum() == 1:
+                # If a row exists in the filtered data frame where the value of
+                # the given key is NaN, it is the total row, so use that for
+                # the data
+                df = df[nan_df]
+        else:
+            df = df[df[key] == value]
+
+        return df
+
+    def _prompt_for_mode(self):
         """
         Gets the desired plotting mode from the user.
 
@@ -157,7 +205,7 @@ class Covid19Plotter:
         
         return int(mode)
 
-    def _get_country(self, global_df):
+    def _prompt_for_country(self, global_df):
         """
         Gets the desired country/region from the user.
 
@@ -180,7 +228,7 @@ class Covid19Plotter:
 
         return country
     
-    def _get_state(self, country_df, country):
+    def _prompt_for_state(self, country_df, country):
         """
         Gets the desired state from the user.
 
@@ -216,7 +264,7 @@ class Covid19Plotter:
 
         return state
 
-    def _get_county(self, state_df):
+    def _prompt_for_county(self, state_df):
         """
         Gets the desired county from the user.
 
