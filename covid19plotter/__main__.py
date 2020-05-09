@@ -28,9 +28,6 @@ CONFIRMED = "confirmed"
 DEATHS = "deaths"
 RECOVERED = "recovered"
 
-TOTAL_CASES = "Total Cases"
-NEW_CASES = "New Cases"
-
 COUNTRY = "Country/Region"
 
 # Province/state header for the US
@@ -39,11 +36,11 @@ STATE = "Province_State"
 # Province/state header for non-US countries/regions
 PROVINCE = "Province/State"
 
+COUNTY = "Admin2"
+
 CONFIRMED_DATA_DESC = "Confirmed Cases"
 DEATHS_DATA_DESC = "Deaths"
 RECOVERIES_DATA_DESC = "Recoveries"
-
-COUNTY = "Admin2"
 
 
 class Covid19Plotter:
@@ -227,7 +224,7 @@ class Covid19Plotter:
 
         mode = self._input()
 
-        while mode not in "123456":
+        while mode == "" or mode not in "123456":
             if mode != "":
                 print("Invalid input.")
             mode = self._input()
