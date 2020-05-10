@@ -17,7 +17,27 @@ def list_to_lower_case(lst):
         list
     """
 
+    if lst is None:
+        return None
+
+    new_lst = []
+
     for i in range(len(lst)):
         if type(lst[i]) == str:
-            lst[i] = lst[i].lower()
-    return lst
+            new_lst.append(lst[i].lower())
+
+    return new_lst
+
+
+def unique(lst):
+    """
+    Returns the unique items in the given list.
+
+    Args:
+        lst (lst): List to get the unique items from.
+
+    Returns:
+        list
+    """
+
+    return list(dict.fromkeys(lst))

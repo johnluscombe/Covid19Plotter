@@ -15,6 +15,7 @@ from covid19plotter.mode import Mode
 from covid19plotter.plots import DailyPlot
 from covid19plotter.plots import TotalPlot
 from covid19plotter.utils import list_to_lower_case
+from covid19plotter.utils import unique
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
            "/csse_covid_19_time_series/time_series_covid19_%s_%s.csv "
@@ -41,6 +42,10 @@ COUNTY = "Admin2"
 CONFIRMED_DATA_DESC = "Confirmed Cases"
 DEATHS_DATA_DESC = "Deaths"
 RECOVERIES_DATA_DESC = "Recoveries"
+
+OPTIONS = "options"
+
+DEFAULT_INPUT_ERROR = "Invalid input."
 
 
 class Covid19Plotter:
@@ -225,8 +230,7 @@ class Covid19Plotter:
         mode = self._input()
 
         while mode == "" or mode not in "123456":
-            if mode != "":
-                print("Invalid input.")
+            print(DEFAULT_INPUT_ERROR)
             mode = self._input()
         
         return int(mode)
@@ -243,17 +247,12 @@ class Covid19Plotter:
             str
         """
 
-        print("Which country/region do you want to view?")
+        prompt = "Which country/region do you want to view? (Type OPTIONS to " \
+                 "see all available options)"
 
-        country = self._input()
-        countries = list_to_lower_case(global_df[COUNTRY].tolist())
+        return self._input_and_validate(
+            prompt=prompt, options=global_df[COUNTRY].tolist())
 
-        while country.lower() not in countries:
-            print("Invalid country.")
-            country = self._input()
-
-        return country
-    
     def _prompt_for_state(self, country_df, country):
         """
         Gets the desired state from the user.
@@ -267,26 +266,26 @@ class Covid19Plotter:
             str
         """
 
-        print("Which state/province do you want to view? (Just press ENTER to see whole country)")
-
-        state = self._input()
-
         if country == US:
             state_df = country_df[STATE]
         else:
             state_df = country_df[PROVINCE]
 
-        states = list_to_lower_case(state_df.tolist())
+        prompt = "Which state/province do you want to view? (Just press ENTER " \
+                 "to see whole country, or type OPTIONS to see all available options)"
 
-        if state in STATE_ABBREVIATIONS:
-            state = STATE_ABBREVIATIONS[state]
+        ignore = [""]
+        if country == US:
+            # Allow users to specify state by abbreviation, but do not show in
+            # the "OPTIONS" output
+            ignore += list(STATE_ABBREVIATIONS.keys())
 
-        while state != "" and state.lower() not in states:
-            print("Invalid state.")
-            state = self._input()
+        state = self._input_and_validate(prompt=prompt, options=state_df.tolist(),
+                                         ignore=ignore)
 
-            if state in STATE_ABBREVIATIONS:
-                state = STATE_ABBREVIATIONS[state]
+        state_upper = state.upper()
+        if state_upper in STATE_ABBREVIATIONS:
+            state = STATE_ABBREVIATIONS[state_upper]
 
         return state
 
@@ -302,18 +301,51 @@ class Covid19Plotter:
             str
         """
 
-        print("Which county do you want to view? (Just press ENTER to see whole state)")
+        prompt = "Which county do you want to view? (Just press ENTER to see " \
+                 "whole state)"
 
-        county = self._input()
-        counties = list_to_lower_case(state_df[COUNTY].tolist())
-
-        while county != "" and county.lower() not in counties:
-            print("Invalid county.")
-            county = self._input()
-
-        return county
+        return self._input_and_validate(
+            prompt=prompt, options=state_df[COUNTY].tolist(), ignore=[""])
     
-    def _input(self):
+    def _input_and_validate(self, prompt=None, options=None, ignore=None):
+        """
+        Gets input from a user, using a consistent prompt, and validates it.
+
+        Returns:
+            str
+        """
+
+        i = self._input(prompt)
+        i_lower = i.lower()
+
+        options = sorted(unique(options))
+
+        if i_lower == OPTIONS:
+            for option in options:
+                print(option)
+
+        lower_options = list_to_lower_case(options)
+        lower_ignore = list_to_lower_case(ignore) or []
+
+        while i_lower not in lower_options and i_lower not in lower_ignore:
+            if i_lower != OPTIONS:
+                print(DEFAULT_INPUT_ERROR)
+
+            i = self._input(prompt)
+            i_lower = i.lower()
+
+            if i_lower == OPTIONS:
+                for option in options:
+                    print(option)
+
+        if i == "":
+            return ""
+        elif i_lower in lower_ignore:
+            return i
+
+        return options[lower_options.index(i_lower)]
+
+    def _input(self, prompt=None):
         """
         Gets input from a user, using a consistent prompt.
 
@@ -321,10 +353,15 @@ class Covid19Plotter:
             str
         """
 
+        if prompt is not None:
+            print(prompt)
+
         i = input(">>> ")
+
         if i == "exit" or i == "quit":
             exit()
-        return i
+
+        return i.strip()
 
 
 if __name__ == "__main__":
