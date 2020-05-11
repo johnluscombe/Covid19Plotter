@@ -7,6 +7,7 @@ The data comes from John Hopkins University:
 https://github.com/CSSEGISandData/COVID-19
 """
 
+from datetime import datetime
 import pandas as pd
 
 from covid19plotter.mode import Mode
@@ -18,6 +19,8 @@ from covid19plotter.utils import input_with_prompt
 
 BASE_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data" \
            "/csse_covid_19_time_series/time_series_covid19_%s_%s.csv "
+
+DATE_FORMAT = "%m/%d/%y"
 
 GLOBAL = "global"
 US = "US"
@@ -37,6 +40,16 @@ class AppRunner:
         self.global_recoveries_df = pd.read_csv(BASE_URL % (RECOVERED, GLOBAL))
         self.us_confirmed_df = pd.read_csv(BASE_URL % (CONFIRMED, US))
         self.us_deaths_df = pd.read_csv(BASE_URL % (DEATHS, US))
+
+        dates = []
+
+        for df in [self.global_confirmed_df, self.global_deaths_df,
+                   self.global_recoveries_df, self.us_confirmed_df,
+                   self.us_deaths_df]:
+
+            dates.append(datetime.strptime(df.columns[-1], DATE_FORMAT))
+
+        print("Last Updated: %s\n" % max(dates).strftime(DATE_FORMAT))
 
     def run(self):
         while True:
