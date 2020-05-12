@@ -147,7 +147,7 @@ class AppRunner:
             str
         """
 
-        prompt = "Which country/region do you want to view? (Type OPTIONS to " \
+        prompt = "Which country do you want to view? (Type OPTIONS to " \
                  "see all available options)"
 
         return input_and_validate(
