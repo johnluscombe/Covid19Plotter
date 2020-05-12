@@ -66,7 +66,7 @@ class AppRunner:
             # frame if appropriate, otherwise just use the global data frame
             df = self._get_country_df(mode, country, global_df)
 
-            if country == US:
+            if country == US and not Mode.is_recoveries_mode(mode):
                 plotter = USPlotter()
             else:
                 plotter = Plotter()
