@@ -5,6 +5,8 @@ Utils
 Utilities used throughout the app.
 """
 
+import numpy as np
+
 OPTIONS = "options"
 
 DEFAULT_INPUT_ERROR = "Invalid input."
@@ -86,7 +88,8 @@ def input_and_validate(prompt=None, options=None, ignore=None):
     i = input_with_prompt(prompt)
     i_lower = i.lower()
 
-    options = sorted(unique(options))
+    # Remove nans, get unique values, and sort them
+    options = sorted(unique(filter(lambda o: o is not np.nan, options)))
 
     if i_lower == OPTIONS:
         for option in options:
